@@ -810,16 +810,18 @@
 <p>Newton’s collision pipeline implementation supports multiple broad phase algorithms and advanced contact models (SDF-based, hydroelastic, cylinder/cone primitives). See <a class="reference internal" href="#collision-pipeline-details"><span class="std std-ref">Broad Phase and Shape Compatibility</span></a> for details.</p>
 <p>Basic usage:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Default: creates CollisionPipeline with EXPLICIT broad phase (precomputed pairs)</span>
-<span class="n">contacts</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">collide</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+<span class="n">contacts</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">contacts</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">collide</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">contacts</span><span class="p">)</span>
 
 <span class="c1"># Or create a pipeline explicitly to choose broad phase mode</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">newton</span><span class="w"> </span><span class="kn">import</span> <span class="n">CollisionPipeline</span><span class="p">,</span> <span class="n">BroadPhaseMode</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">newton</span><span class="w"> </span><span class="kn">import</span> <span class="n">CollisionPipeline</span>
 
-<span class="n">pipeline</span> <span class="o">=</span> <span class="n">CollisionPipeline</span><span class="o">.</span><span class="n">from_model</span><span class="p">(</span>
+<span class="n">pipeline</span> <span class="o">=</span> <span class="n">CollisionPipeline</span><span class="p">(</span>
     <span class="n">model</span><span class="p">,</span>
-    <span class="n">broad_phase_mode</span><span class="o">=</span><span class="n">BroadPhaseMode</span><span class="o">.</span><span class="n">SAP</span><span class="p">,</span>
+    <span class="n">broad_phase</span><span class="o">=</span><span class="s2">&quot;sap&quot;</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="n">contacts</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">collide</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">collision_pipeline</span><span class="o">=</span><span class="n">pipeline</span><span class="p">)</span>
+<span class="n">contacts</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">contacts</span><span class="p">()</span>
+<span class="n">pipeline</span><span class="o">.</span><span class="n">collide</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">contacts</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -873,11 +875,10 @@
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p><strong>SDF is a collision option</strong>, not a standalone shape type. Enable SDF generation on any shape
-via <code class="docutils literal notranslate"><span class="pre">sdf_max_resolution</span></code> or <code class="docutils literal notranslate"><span class="pre">sdf_target_voxel_size</span></code> to precompute a signed distance field
-from the shape’s geometry. The SDF provides O(1) distance queries that accelerate collision
-detection, especially for mesh-mesh pairs. The collision pipeline decides when to use SDF data
-based on efficiency.</p>
+<p><strong>SDF is collision data, not a standalone shape type.</strong> For mesh shapes, build and attach
+an SDF explicitly with <code class="docutils literal notranslate"><span class="pre">mesh.build_sdf(...)</span></code> and then pass that mesh to
+<code class="docutils literal notranslate"><span class="pre">builder.add_shape_mesh(...)</span></code>. For primitive hydroelastic workflows, SDF generation uses
+<code class="docutils literal notranslate"><span class="pre">ShapeConfig</span></code> SDF parameters.</p>
 </div>
 </section>
 <section id="shapes-and-rigid-bodies">
@@ -888,7 +889,7 @@ based on efficiency.</p>
 <li><p><strong>Local transform</strong> (<code class="docutils literal notranslate"><span class="pre">shape_transform</span></code>): Position and orientation relative to the body frame.</p></li>
 <li><p><strong>Scale</strong> (<code class="docutils literal notranslate"><span class="pre">shape_scale</span></code>): 3D scale factors applied to the shape geometry.</p></li>
 <li><p><strong>Thickness</strong> (<code class="docutils literal notranslate"><span class="pre">shape_thickness</span></code>): Surface thickness used in contact generation (see <a class="reference internal" href="#shape-configuration"><span class="std std-ref">Shape Configuration</span></a>).</p></li>
-<li><p><strong>Source geometry</strong> (<code class="docutils literal notranslate"><span class="pre">shape_source</span></code>): Reference to the underlying geometry object (e.g., <a class="reference internal" href="../api/_generated/newton.Mesh.html#newton.Mesh" title="newton.Mesh"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mesh</span></code></a>, <a class="reference internal" href="../api/_generated/newton.SDF.html#newton.SDF" title="newton.SDF"><code class="xref py py-class docutils literal notranslate"><span class="pre">SDF</span></code></a>).</p></li>
+<li><p><strong>Source geometry</strong> (<code class="docutils literal notranslate"><span class="pre">shape_source</span></code>): Reference to the underlying geometry object (e.g., <a class="reference internal" href="../api/_generated/newton.Mesh.html#newton.Mesh" title="newton.Mesh"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mesh</span></code></a>).</p></li>
 </ul>
 <p>During collision detection, shapes are transformed to world space using their parent body’s pose:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Shape world transform = body_pose * shape_local_transform</span>
@@ -1135,18 +1136,19 @@ UsdPhysics <code class="docutils literal notranslate"><span class="pre">physics:
 </tbody>
 </table>
 </div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">newton</span><span class="w"> </span><span class="kn">import</span> <span class="n">CollisionPipeline</span><span class="p">,</span> <span class="n">BroadPhaseMode</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">newton</span><span class="w"> </span><span class="kn">import</span> <span class="n">CollisionPipeline</span>
 
 <span class="c1"># Default: EXPLICIT (precomputed pairs)</span>
-<span class="n">pipeline</span> <span class="o">=</span> <span class="n">CollisionPipeline</span><span class="o">.</span><span class="n">from_model</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+<span class="n">pipeline</span> <span class="o">=</span> <span class="n">CollisionPipeline</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
 
 <span class="c1"># NxN for small scenes</span>
-<span class="n">pipeline</span> <span class="o">=</span> <span class="n">CollisionPipeline</span><span class="o">.</span><span class="n">from_model</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">broad_phase_mode</span><span class="o">=</span><span class="n">BroadPhaseMode</span><span class="o">.</span><span class="n">NXN</span><span class="p">)</span>
+<span class="n">pipeline</span> <span class="o">=</span> <span class="n">CollisionPipeline</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">broad_phase</span><span class="o">=</span><span class="s2">&quot;nxn&quot;</span><span class="p">)</span>
 
 <span class="c1"># SAP for larger scenes</span>
-<span class="n">pipeline</span> <span class="o">=</span> <span class="n">CollisionPipeline</span><span class="o">.</span><span class="n">from_model</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">broad_phase_mode</span><span class="o">=</span><span class="n">BroadPhaseMode</span><span class="o">.</span><span class="n">SAP</span><span class="p">)</span>
+<span class="n">pipeline</span> <span class="o">=</span> <span class="n">CollisionPipeline</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">broad_phase</span><span class="o">=</span><span class="s2">&quot;sap&quot;</span><span class="p">)</span>
 
-<span class="n">contacts</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">collide</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">collision_pipeline</span><span class="o">=</span><span class="n">pipeline</span><span class="p">)</span>
+<span class="n">contacts</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">contacts</span><span class="p">()</span>
+<span class="n">pipeline</span><span class="o">.</span><span class="n">collide</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">contacts</span><span class="p">)</span>
 </pre></div>
 </div>
 <section id="shape-compatibility">
@@ -1285,7 +1287,8 @@ UsdPhysics <code class="docutils literal notranslate"><span class="pre">physics:
 <p>Ellipsoid and ConvexMesh are also fully supported. The only unsupported type is <code class="docutils literal notranslate"><span class="pre">HFIELD</span></code> (heightfield) - convert to mesh instead.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p><strong>SDF</strong> in this table refers to shapes with precomputed SDF data (via <code class="docutils literal notranslate"><span class="pre">sdf_max_resolution</span></code> or <code class="docutils literal notranslate"><span class="pre">sdf_target_voxel_size</span></code>). SDFs are generated from a shape’s primary geometry and provide O(1) distance queries.</p>
+<p><strong>SDF</strong> in this table refers to shapes with precomputed SDF data. Mesh SDFs are attached
+through <code class="docutils literal notranslate"><span class="pre">mesh.build_sdf(...)</span></code> and provide O(1) distance queries.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -1299,7 +1302,7 @@ UsdPhysics <code class="docutils literal notranslate"><span class="pre">physics:
 <p><strong>MPR (Minkowski Portal Refinement)</strong></p>
 <p>The primary algorithm for convex shape pairs. Uses support mapping functions to find the closest points between shapes via Minkowski difference sampling. Works with all convex primitives (sphere, box, capsule, cylinder, cone, ellipsoid) and convex meshes.</p>
 <p><strong>Multi-contact Generation</strong></p>
-<p>For shape pairs, multiple contact points are generated for stable stacking and resting contacts. The collision pipeline estimates buffer sizes based on the model; you can override with <code class="docutils literal notranslate"><span class="pre">rigid_contact_max</span></code> when creating the pipeline via <code class="xref py py-meth docutils literal notranslate"><span class="pre">CollisionPipeline.from_model()</span></code>.</p>
+<p>For shape pairs, multiple contact points are generated for stable stacking and resting contacts. The collision pipeline estimates buffer sizes based on the model; you can override this value with <code class="docutils literal notranslate"><span class="pre">rigid_contact_max</span></code> when instantiating the pipeline.</p>
 <section id="mesh-collision-handling">
 <span id="mesh-collisions"></span><h3>Mesh Collision Handling<a class="headerlink" href="#mesh-collision-handling" title="Link to this heading">#</a></h3>
 <p>Mesh collisions use different strategies depending on the pair type:</p>
@@ -1313,17 +1316,15 @@ UsdPhysics <code class="docutils literal notranslate"><span class="pre">physics:
 <li><p><strong>BVH-based</strong> (default when no SDF configured): Iterates mesh vertices against the other mesh’s BVH.
 Performance scales with triangle count - can be very slow for complex meshes.</p></li>
 <li><p><strong>SDF-based</strong> (recommended): Uses precomputed signed distance fields for fast queries.
-Enable by setting <code class="docutils literal notranslate"><span class="pre">sdf_max_resolution</span></code> or <code class="docutils literal notranslate"><span class="pre">sdf_target_voxel_size</span></code> on shapes.</p></li>
+For mesh shapes, call <code class="docutils literal notranslate"><span class="pre">mesh.build_sdf(...)</span></code> once and reuse the mesh.</p></li>
 </ol>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>If SDF is not precomputed, mesh-mesh contacts fall back to on-the-fly BVH distance queries
-which are <strong>significantly slower</strong>. For production use with complex meshes, configure SDF
-via <code class="docutils literal notranslate"><span class="pre">sdf_max_resolution</span></code> or <code class="docutils literal notranslate"><span class="pre">sdf_target_voxel_size</span></code>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cfg</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">ShapeConfig</span><span class="p">(</span>
-    <span class="n">sdf_max_resolution</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>  <span class="c1"># Precompute SDF for fast mesh-mesh collision</span>
-<span class="p">)</span>
-<span class="n">builder</span><span class="o">.</span><span class="n">add_shape_mesh</span><span class="p">(</span><span class="n">body</span><span class="p">,</span> <span class="n">mesh</span><span class="o">=</span><span class="n">my_mesh</span><span class="p">,</span> <span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="p">)</span>
+which are <strong>significantly slower</strong>. For production use with complex meshes, precompute and
+attach SDF data on meshes:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">my_mesh</span><span class="o">.</span><span class="n">build_sdf</span><span class="p">(</span><span class="n">max_resolution</span><span class="o">=</span><span class="mi">64</span><span class="p">)</span>
+<span class="n">builder</span><span class="o">.</span><span class="n">add_shape_mesh</span><span class="p">(</span><span class="n">body</span><span class="p">,</span> <span class="n">mesh</span><span class="o">=</span><span class="n">my_mesh</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1335,37 +1336,22 @@ via <code class="docutils literal notranslate"><span class="pre">sdf_max_resolut
 <ol class="arabic simple">
 <li><p>Contacts are binned by normal direction (20 icosahedron face directions)</p></li>
 <li><p>Within each bin, contacts are scored by spatial distribution and penetration depth</p></li>
-<li><p>Representative contacts are selected using configurable depth thresholds (betas)</p></li>
+<li><p>Representative contacts are selected to preserve coverage and depth cues</p></li>
 </ol>
 <p>To disable reduction, set <code class="docutils literal notranslate"><span class="pre">reduce_contacts=False</span></code> when creating the pipeline.</p>
-<p><strong>Configuring contact reduction (SDFHydroelasticConfig):</strong></p>
-<p>For hydroelastic and SDF-based contacts, use <code class="xref py py-class docutils literal notranslate"><span class="pre">SDFHydroelasticConfig</span></code> to tune reduction behavior:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">newton</span><span class="w"> </span><span class="kn">import</span> <span class="n">SDFHydroelasticConfig</span>
+<p><strong>Configuring contact reduction (HydroelasticSDF.Config):</strong></p>
+<p>For hydroelastic and SDF-based contacts, use <a class="reference internal" href="../api/_generated/newton.geometry.HydroelasticSDF.html#newton.geometry.HydroelasticSDF.Config" title="newton.geometry.HydroelasticSDF.Config"><code class="xref py py-class docutils literal notranslate"><span class="pre">Config</span></code></a> to tune reduction behavior:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">newton.geometry</span><span class="w"> </span><span class="kn">import</span> <span class="n">HydroelasticSDF</span>
 
-<span class="n">config</span> <span class="o">=</span> <span class="n">SDFHydroelasticConfig</span><span class="p">(</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">HydroelasticSDF</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span>
     <span class="n">reduce_contacts</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>           <span class="c1"># Enable contact reduction</span>
-    <span class="n">betas</span><span class="o">=</span><span class="p">(</span><span class="mf">10.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">),</span>             <span class="c1"># Scoring thresholds (default)</span>
-    <span class="n">sticky_contacts</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>            <span class="c1"># Temporal persistence (0 = disabled)</span>
+    <span class="n">buffer_fraction</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>            <span class="c1"># Reduce hydroelastic GPU buffer allocations</span>
     <span class="n">normal_matching</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>           <span class="c1"># Align reduced normals with aggregate force</span>
-    <span class="n">moment_matching</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>          <span class="c1"># Match friction moments (experimental)</span>
+    <span class="n">anchor_contact</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>           <span class="c1"># Optional center-of-pressure anchor contact</span>
 <span class="p">)</span>
 
-<span class="n">pipeline</span> <span class="o">=</span> <span class="n">CollisionPipeline</span><span class="o">.</span><span class="n">from_model</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">sdf_hydroelastic_config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+<span class="n">pipeline</span> <span class="o">=</span> <span class="n">CollisionPipeline</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">sdf_hydroelastic_config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
 </pre></div>
-</div>
-<p><strong>Understanding betas:</strong></p>
-<p>The <code class="docutils literal notranslate"><span class="pre">betas</span></code> tuple controls how contacts are scored for selection. Each beta value (first element, second element, etc.) produces a separate set of representative contacts per normal bin:</p>
-<ul class="simple">
-<li><p><strong>Positive beta</strong> (e.g., <code class="docutils literal notranslate"><span class="pre">10.0</span></code>): Score = <code class="docutils literal notranslate"><span class="pre">spatial_position</span> <span class="pre">+</span> <span class="pre">depth</span> <span class="pre">*</span> <span class="pre">beta</span></code>. Higher values favor deeper contacts.</p></li>
-<li><p><strong>Negative beta</strong> (e.g., <code class="docutils literal notranslate"><span class="pre">-0.5</span></code>): Score = <code class="docutils literal notranslate"><span class="pre">spatial_position</span> <span class="pre">*</span> <span class="pre">depth^(-beta)</span></code> for penetrating contacts.
-This weighs spatial distribution more heavily for shallow contacts.</p></li>
-</ul>
-<p>The default <code class="docutils literal notranslate"><span class="pre">(10.0,</span> <span class="pre">-0.5)</span></code> provides a balance: one set prioritizes penetration depth,
-another prioritizes spatial coverage. More betas = more contacts retained but better coverage.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The beta scoring behavior is subject to refinement. The collision pipeline
-is under active development and these parameters may change in future releases.</p>
 </div>
 <p><strong>Other reduction options:</strong></p>
 <div class="pst-scrollable-table-container"><table class="table">
@@ -1379,19 +1365,15 @@ is under active development and these parameters may change in future releases.<
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sticky_contacts</span></code></p></td>
-<td><p>Temporal persistence threshold. When &gt; 0, contacts from previous frames within this distance are preserved to prevent jittering. Default: 0.0 (disabled).</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">normal_matching</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">normal_matching</span></code></p></td>
 <td><p>Rotates selected contact normals so their weighted sum aligns with the aggregate force direction
 from all unreduced contacts. Preserves net force direction after reduction. Default: True.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">moment_matching</span></code></p></td>
-<td><p>Preserves torsional friction by adding an anchor contact at the depth-weighted centroid and
-scaling friction coefficients. This ensures the reduced contact set produces similar resistance
-to rotational sliding as the original contacts. Experimental. Default: False.</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">anchor_contact</span></code></p></td>
+<td><p>Adds an anchor contact at the center of pressure for each normal bin to better preserve moments.
+Default: False.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">margin_contact_area</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">margin_contact_area</span></code></p></td>
 <td><p>Lower bound on contact area. Hydroelastic stiffness is <code class="docutils literal notranslate"><span class="pre">area</span> <span class="pre">*</span> <span class="pre">k_eff</span></code>, but contacts
 within the contact margin that are not yet penetrating (speculative contacts) have zero
 geometric area. This provides a floor value so they still generate repulsive force. Default: 0.01.</p></td>
@@ -1455,7 +1437,7 @@ geometric area. This provides a floor value so they still generate repulsive for
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">is_hydroelastic</span></code></p></td>
 <td><p>Whether the shape uses SDF-based hydroelastic contacts. Both shapes in a pair must have this enabled. See <a class="reference internal" href="#hydroelastic-contacts"><span class="std std-ref">Hydroelastic Contacts</span></a>. Default: False.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">k_hydro</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">kh</span></code></p></td>
 <td><p>Contact stiffness for hydroelastic collisions. Used by MuJoCo, Featherstone, SemiImplicit when <code class="docutils literal notranslate"><span class="pre">is_hydroelastic=True</span></code>. Default: 1.0e10.</p></td>
 </tr>
 </tbody>
@@ -1467,7 +1449,7 @@ geometric area. This provides a floor value so they still generate repulsive for
 <code class="docutils literal notranslate"><span class="pre">d</span> <span class="pre">=</span> <span class="pre">surface_distance</span> <span class="pre">-</span> <span class="pre">(thickness_a</span> <span class="pre">+</span> <span class="pre">thickness_b)</span></code>. The solver enforces <code class="docutils literal notranslate"><span class="pre">d</span> <span class="pre">&gt;=</span> <span class="pre">0</span></code>,
 so objects at rest settle with surfaces separated by <code class="docutils literal notranslate"><span class="pre">thickness_a</span> <span class="pre">+</span> <span class="pre">thickness_b</span></code>.</p>
 </div>
-<p><strong>SDF configuration (generates SDF from shape geometry):</strong></p>
+<p><strong>SDF configuration (primitive generation defaults):</strong></p>
 <div class="pst-scrollable-table-container"><table class="table">
 <colgroup>
 <col style="width: 30.0%" />
@@ -1480,10 +1462,10 @@ so objects at rest settle with surfaces separated by <code class="docutils liter
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sdf_max_resolution</span></code></p></td>
-<td><p>Maximum SDF grid dimension (must be divisible by 8). Either this or <code class="docutils literal notranslate"><span class="pre">sdf_target_voxel_size</span></code> enables SDF.</p></td>
+<td><p>Maximum SDF grid dimension (must be divisible by 8) for primitive SDF generation.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sdf_target_voxel_size</span></code></p></td>
-<td><p>Target voxel size for SDF. Takes precedence over <code class="docutils literal notranslate"><span class="pre">sdf_max_resolution</span></code>.</p></td>
+<td><p>Target voxel size for primitive SDF generation. Takes precedence over <code class="docutils literal notranslate"><span class="pre">sdf_max_resolution</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sdf_narrow_band_range</span></code></p></td>
 <td><p>SDF narrow band distance range (inner, outer). Default: (-0.1, 0.1).</p></td>
@@ -1491,13 +1473,13 @@ so objects at rest settle with surfaces separated by <code class="docutils liter
 </tbody>
 </table>
 </div>
-<p>Example:</p>
+<p>Example (mesh SDF workflow):</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cfg</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">ShapeConfig</span><span class="p">(</span>
     <span class="n">collision_group</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>           <span class="c1"># Collide with everything</span>
     <span class="n">thickness</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>              <span class="c1"># 1mm thickness</span>
     <span class="n">contact_margin</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>          <span class="c1"># 1cm margin</span>
-    <span class="n">sdf_max_resolution</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>        <span class="c1"># Enable SDF for mesh</span>
 <span class="p">)</span>
+<span class="n">my_mesh</span><span class="o">.</span><span class="n">build_sdf</span><span class="p">(</span><span class="n">max_resolution</span><span class="o">=</span><span class="mi">64</span><span class="p">)</span>
 <span class="n">builder</span><span class="o">.</span><span class="n">add_shape_mesh</span><span class="p">(</span><span class="n">body</span><span class="p">,</span> <span class="n">mesh</span><span class="o">=</span><span class="n">my_mesh</span><span class="p">,</span> <span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1528,7 +1510,7 @@ so objects at rest settle with surfaces separated by <code class="docutils liter
 <span class="n">builder</span><span class="o">.</span><span class="n">default_shape_cfg</span><span class="o">.</span><span class="n">kd</span> <span class="o">=</span> <span class="mf">1000.0</span>
 <span class="n">builder</span><span class="o">.</span><span class="n">default_shape_cfg</span><span class="o">.</span><span class="n">mu</span> <span class="o">=</span> <span class="mf">0.5</span>
 <span class="n">builder</span><span class="o">.</span><span class="n">default_shape_cfg</span><span class="o">.</span><span class="n">is_hydroelastic</span> <span class="o">=</span> <span class="kc">True</span>
-<span class="n">builder</span><span class="o">.</span><span class="n">default_shape_cfg</span><span class="o">.</span><span class="n">sdf_max_resolution</span> <span class="o">=</span> <span class="mi">64</span>
+<span class="n">builder</span><span class="o">.</span><span class="n">default_shape_cfg</span><span class="o">.</span><span class="n">sdf_max_resolution</span> <span class="o">=</span> <span class="mi">64</span>  <span class="c1"># Primitive SDF defaults</span>
 </pre></div>
 </div>
 <p><strong>Running collision less frequently</strong></p>
@@ -1538,7 +1520,7 @@ so objects at rest settle with surfaces separated by <code class="docutils liter
 <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_frames</span><span class="p">):</span>
     <span class="k">for</span> <span class="n">substep</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">sim_substeps</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">substep</span> <span class="o">%</span> <span class="n">collide_every_n_substeps</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">contacts</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">collide</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">collision_pipeline</span><span class="o">=</span><span class="n">pipeline</span><span class="p">)</span>
+            <span class="n">pipeline</span><span class="o">.</span><span class="n">collide</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">contacts</span><span class="p">)</span>
         <span class="n">solver</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">state_0</span><span class="p">,</span> <span class="n">state_1</span><span class="p">,</span> <span class="n">control</span><span class="p">,</span> <span class="n">contacts</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="n">sim_dt</span><span class="p">)</span>
         <span class="n">state_0</span><span class="p">,</span> <span class="n">state_1</span> <span class="o">=</span> <span class="n">state_1</span><span class="p">,</span> <span class="n">state_0</span>
 </pre></div>
@@ -1548,8 +1530,10 @@ so objects at rest settle with surfaces separated by <code class="docutils liter
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Add particles</span>
 <span class="n">builder</span><span class="o">.</span><span class="n">add_particle</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="n">wp</span><span class="o">.</span><span class="n">vec3</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">vel</span><span class="o">=</span><span class="n">wp</span><span class="o">.</span><span class="n">vec3</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">mass</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
 
-<span class="c1"># Soft contact margin is set at collision time</span>
-<span class="n">contacts</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">collide</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">soft_contact_margin</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
+<span class="c1"># Set soft contact margin</span>
+<span class="n">pipeline</span> <span class="o">=</span> <span class="n">CollisionPipeline</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">soft_contact_margin</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
+<span class="n">contacts</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">contacts</span><span class="p">()</span>
+<span class="n">pipeline</span><span class="o">.</span><span class="n">collide</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">contacts</span><span class="p">)</span>
 
 <span class="c1"># Access soft contact data</span>
 <span class="n">n_soft</span> <span class="o">=</span> <span class="n">contacts</span><span class="o">.</span><span class="n">soft_contact_count</span><span class="o">.</span><span class="n">numpy</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
@@ -1562,11 +1546,6 @@ so objects at rest settle with surfaces separated by <code class="docutils liter
 <span id="contact-generation"></span><h2>Contact Data<a class="headerlink" href="#contact-data" title="Link to this heading">#</a></h2>
 <p>The <a class="reference internal" href="../api/_generated/newton.Contacts.html#newton.Contacts" title="newton.Contacts"><code class="xref py py-class docutils literal notranslate"><span class="pre">Contacts</span></code></a> class stores the results from the collision detection step
 and is consumed by the solver <a class="reference internal" href="../api/_generated/newton.solvers.SolverBase.html#newton.solvers.SolverBase.step" title="newton.solvers.SolverBase.step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">step()</span></code></a> method for contact handling.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Contact forces are not part of the <a class="reference internal" href="../api/_generated/newton.Contacts.html#newton.Contacts" title="newton.Contacts"><code class="xref py py-class docutils literal notranslate"><span class="pre">Contacts</span></code></a> class - it only stores geometric
-contact information. See <code class="xref py py-class docutils literal notranslate"><span class="pre">SensorContact</span></code> for computing contact forces.</p>
-</div>
 <p><strong>Rigid contacts:</strong></p>
 <div class="pst-scrollable-table-container"><table class="table">
 <colgroup>
@@ -1630,8 +1609,27 @@ contact information. See <code class="xref py py-class docutils literal notransl
 </tbody>
 </table>
 </div>
+<p><strong>Extended contact attributes</strong> (see <a class="reference internal" href="extended_attributes.html#extended-contact-attributes"><span class="std std-ref">Extended Contact Attributes</span></a>):</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 22.0%" />
+<col style="width: 78.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Attribute</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/_generated/newton.Contacts.html#newton.Contacts.force" title="newton.Contacts.force"><code class="xref py py-attr docutils literal notranslate"><span class="pre">force</span></code></a></p></td>
+<td><p>Contact spatial forces (used by <a class="reference internal" href="../api/_generated/newton.sensors.SensorContact.html#newton.sensors.SensorContact" title="newton.sensors.SensorContact"><code class="xref py py-class docutils literal notranslate"><span class="pre">SensorContact</span></code></a>)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 <p>Example usage:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">contacts</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">collide</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">contacts</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">contacts</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">collide</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">contacts</span><span class="p">)</span>
 
 <span class="n">n</span> <span class="o">=</span> <span class="n">contacts</span><span class="o">.</span><span class="n">rigid_contact_count</span><span class="o">.</span><span class="n">numpy</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
 <span class="n">points0</span> <span class="o">=</span> <span class="n">contacts</span><span class="o">.</span><span class="n">rigid_contact_point0</span><span class="o">.</span><span class="n">numpy</span><span class="p">()[:</span><span class="n">n</span><span class="p">]</span>
@@ -1644,28 +1642,28 @@ contact information. See <code class="xref py py-class docutils literal notransl
 </pre></div>
 </div>
 </section>
-<section id="model-collide-parameters">
-<span id="collide-method"></span><h2>Model.collide() Parameters<a class="headerlink" href="#model-collide-parameters" title="Link to this heading">#</a></h2>
-<p>The <code class="xref py py-meth docutils literal notranslate"><span class="pre">Model.collide()</span></code> method accepts the following parameters:</p>
-<div class="pst-scrollable-table-container"><table class="table">
-<colgroup>
-<col style="width: 30.0%" />
-<col style="width: 70.0%" />
-</colgroup>
-<thead>
-<tr class="row-odd"><th class="head"><p>Parameter</p></th>
-<th class="head"><p>Description</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">state</span></code></p></td>
-<td><p>Current simulation state (required).</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">collision_pipeline</span></code></p></td>
-<td><p>Optional <a class="reference internal" href="../api/_generated/newton.CollisionPipeline.html#newton.CollisionPipeline" title="newton.CollisionPipeline"><code class="xref py py-class docutils literal notranslate"><span class="pre">CollisionPipeline</span></code></a>. If None, creates/reuses a default pipeline (EXPLICIT broad phase). For options like <code class="docutils literal notranslate"><span class="pre">rigid_contact_max</span></code>, <code class="docutils literal notranslate"><span class="pre">soft_contact_margin</span></code>, <code class="docutils literal notranslate"><span class="pre">requires_grad</span></code>, create the pipeline via <code class="xref py py-meth docutils literal notranslate"><span class="pre">CollisionPipeline.from_model()</span></code> and pass it here.</p></td>
-</tr>
-</tbody>
-</table>
+<section id="creating-and-populating-contacts">
+<span id="creating-contacts"></span><h2>Creating and Populating Contacts<a class="headerlink" href="#creating-and-populating-contacts" title="Link to this heading">#</a></h2>
+<p><a class="reference internal" href="../api/_generated/newton.Model.html#newton.Model.contacts" title="newton.Model.contacts"><code class="xref py py-meth docutils literal notranslate"><span class="pre">contacts()</span></code></a> creates a <a class="reference internal" href="../api/_generated/newton.Contacts.html#newton.Contacts" title="newton.Contacts"><code class="xref py py-class docutils literal notranslate"><span class="pre">Contacts</span></code></a> buffer using a default
+<a class="reference internal" href="../api/_generated/newton.CollisionPipeline.html#newton.CollisionPipeline" title="newton.CollisionPipeline"><code class="xref py py-class docutils literal notranslate"><span class="pre">CollisionPipeline</span></code></a> (EXPLICIT broad phase, cached on first call).
+<a class="reference internal" href="../api/_generated/newton.Model.html#newton.Model.collide" title="newton.Model.collide"><code class="xref py py-meth docutils literal notranslate"><span class="pre">collide()</span></code></a> populates it:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">contacts</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">contacts</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">collide</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">contacts</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The contacts buffer can be reused across steps — <code class="docutils literal notranslate"><span class="pre">collide</span></code> clears it each time.</p>
+<p>For control over broad phase mode, contact limits, or hydroelastic configuration, create a
+<a class="reference internal" href="../api/_generated/newton.CollisionPipeline.html#newton.CollisionPipeline" title="newton.CollisionPipeline"><code class="xref py py-class docutils literal notranslate"><span class="pre">CollisionPipeline</span></code></a> directly:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">newton</span><span class="w"> </span><span class="kn">import</span> <span class="n">CollisionPipeline</span>
+
+<span class="n">pipeline</span> <span class="o">=</span> <span class="n">CollisionPipeline</span><span class="p">(</span>
+    <span class="n">model</span><span class="p">,</span>
+    <span class="n">broad_phase</span><span class="o">=</span><span class="s2">&quot;sap&quot;</span><span class="p">,</span>
+    <span class="n">rigid_contact_max</span><span class="o">=</span><span class="mi">50000</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">contacts</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">contacts</span><span class="p">()</span>
+<span class="n">pipeline</span><span class="o">.</span><span class="n">collide</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">contacts</span><span class="p">)</span>
+</pre></div>
 </div>
 </section>
 <section id="hydroelastic-contacts">
@@ -1683,13 +1681,16 @@ contact information. See <code class="xref py py-class docutils literal notransl
 <p><strong>Requirements:</strong></p>
 <ul class="simple">
 <li><p>Both shapes in a pair must have <code class="docutils literal notranslate"><span class="pre">is_hydroelastic=True</span></code></p></li>
-<li><p>Shapes must have SDF enabled (<code class="docutils literal notranslate"><span class="pre">sdf_max_resolution</span></code> or <code class="docutils literal notranslate"><span class="pre">sdf_target_voxel_size</span></code>)</p></li>
+<li><p>Shapes must have SDF data available:
+- mesh shapes: call <code class="docutils literal notranslate"><span class="pre">mesh.build_sdf(...)</span></code>
+- primitive shapes: use <code class="docutils literal notranslate"><span class="pre">sdf_max_resolution</span></code> or <code class="docutils literal notranslate"><span class="pre">sdf_target_voxel_size</span></code> in <code class="docutils literal notranslate"><span class="pre">ShapeConfig</span></code></p></li>
+<li><p>For non-unit shape scale, the attached SDF must be scale-baked</p></li>
 <li><p>Only volumetric shapes supported (not planes, heightfields, or non-watertight meshes)</p></li>
 </ul>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cfg</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">ShapeConfig</span><span class="p">(</span>
     <span class="n">is_hydroelastic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>   <span class="c1"># Opt-in to hydroelastic contacts</span>
     <span class="n">sdf_max_resolution</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>  <span class="c1"># Required for hydroelastic</span>
-    <span class="n">k_hydro</span><span class="o">=</span><span class="mf">1.0e11</span><span class="p">,</span>         <span class="c1"># Contact stiffness</span>
+    <span class="n">kh</span><span class="o">=</span><span class="mf">1.0e11</span><span class="p">,</span>              <span class="c1"># Contact stiffness</span>
 <span class="p">)</span>
 <span class="n">builder</span><span class="o">.</span><span class="n">add_shape_box</span><span class="p">(</span><span class="n">body</span><span class="p">,</span> <span class="n">hx</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">hy</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">hz</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="p">)</span>
 </pre></div>
@@ -1701,9 +1702,23 @@ contact information. See <code class="xref py py-class docutils literal notransl
 <li><p>Contact points are distributed across the surface area</p></li>
 <li><p>Optional contact reduction selects representative points</p></li>
 </ol>
-<p><strong>Hydroelastic stiffness (k_hydro):</strong></p>
-<p>The <code class="docutils literal notranslate"><span class="pre">k_hydro</span></code> parameter on each shape controls area-dependent contact stiffness. For a pair, the effective stiffness is computed as the harmonic mean: <code class="docutils literal notranslate"><span class="pre">k_eff</span> <span class="pre">=</span> <span class="pre">2</span> <span class="pre">*</span> <span class="pre">k_a</span> <span class="pre">*</span> <span class="pre">k_b</span> <span class="pre">/</span> <span class="pre">(k_a</span> <span class="pre">+</span> <span class="pre">k_b)</span></code>. Tune this for desired penetration behavior.</p>
-<p>Contact reduction options for hydroelastic contacts are configured via <code class="xref py py-class docutils literal notranslate"><span class="pre">SDFHydroelasticConfig</span></code> (see <a class="reference internal" href="#contact-reduction"><span class="std std-ref">Contact Reduction</span></a>).</p>
+<p><strong>Hydroelastic stiffness (kh):</strong></p>
+<p>The <code class="docutils literal notranslate"><span class="pre">kh</span></code> parameter on each shape controls area-dependent contact stiffness. For a pair, the effective stiffness is computed as the harmonic mean: <code class="docutils literal notranslate"><span class="pre">k_eff</span> <span class="pre">=</span> <span class="pre">2</span> <span class="pre">*</span> <span class="pre">k_a</span> <span class="pre">*</span> <span class="pre">k_b</span> <span class="pre">/</span> <span class="pre">(k_a</span> <span class="pre">+</span> <span class="pre">k_b)</span></code>. Tune this for desired penetration behavior.</p>
+<p>Contact reduction options for hydroelastic contacts are configured via <a class="reference internal" href="../api/_generated/newton.geometry.HydroelasticSDF.html#newton.geometry.HydroelasticSDF.Config" title="newton.geometry.HydroelasticSDF.Config"><code class="xref py py-class docutils literal notranslate"><span class="pre">Config</span></code></a> (see <a class="reference internal" href="#contact-reduction"><span class="std std-ref">Contact Reduction</span></a>).</p>
+<p>Hydroelastic memory can be tuned with <code class="docutils literal notranslate"><span class="pre">buffer_fraction</span></code> on
+<a class="reference internal" href="../api/_generated/newton.geometry.HydroelasticSDF.html#newton.geometry.HydroelasticSDF.Config" title="newton.geometry.HydroelasticSDF.Config"><code class="xref py py-class docutils literal notranslate"><span class="pre">Config</span></code></a>. This scales broadphase, iso-refinement,
+and hydroelastic face-contact buffer allocations as a fraction of the worst-case
+size. Lower values reduce memory usage but also reduce overflow headroom.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">newton.geometry</span><span class="w"> </span><span class="kn">import</span> <span class="n">HydroelasticSDF</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="n">HydroelasticSDF</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span>
+    <span class="n">reduce_contacts</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">buffer_fraction</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>  <span class="c1"># 20% of worst-case hydroelastic buffers</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>If runtime overflow warnings appear, increase <code class="docutils literal notranslate"><span class="pre">buffer_fraction</span></code> (or stage-specific
+<code class="docutils literal notranslate"><span class="pre">buffer_mult_*</span></code> values) until warnings disappear in your target scenes.</p>
 </section>
 <section id="contact-materials">
 <span id="contact-material-properties"></span><h2>Contact Materials<a class="headerlink" href="#contact-materials" title="Link to this heading">#</a></h2>
@@ -1761,23 +1776,23 @@ contact information. See <code class="xref py py-class docutils literal notransl
 <td><p><a class="reference internal" href="../api/_generated/newton.ModelBuilder.html#newton.ModelBuilder.ShapeConfig.restitution" title="newton.ModelBuilder.ShapeConfig.restitution"><code class="xref py py-attr docutils literal notranslate"><span class="pre">restitution</span></code></a></p></td>
 <td><p><a class="reference internal" href="../api/_generated/newton.Model.html#newton.Model.shape_material_restitution" title="newton.Model.shape_material_restitution"><code class="xref py py-attr docutils literal notranslate"><span class="pre">shape_material_restitution</span></code></a></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">torsional_friction</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mu_torsional</span></code></p></td>
 <td><p>Resistance to spinning at contact</p></td>
 <td><p>XPBD, MuJoCo</p></td>
-<td><p><a class="reference internal" href="../api/_generated/newton.ModelBuilder.html#newton.ModelBuilder.ShapeConfig.torsional_friction" title="newton.ModelBuilder.ShapeConfig.torsional_friction"><code class="xref py py-attr docutils literal notranslate"><span class="pre">torsional_friction</span></code></a></p></td>
-<td><p><a class="reference internal" href="../api/_generated/newton.Model.html#newton.Model.shape_material_torsional_friction" title="newton.Model.shape_material_torsional_friction"><code class="xref py py-attr docutils literal notranslate"><span class="pre">shape_material_torsional_friction</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/_generated/newton.ModelBuilder.html#newton.ModelBuilder.ShapeConfig.mu_torsional" title="newton.ModelBuilder.ShapeConfig.mu_torsional"><code class="xref py py-attr docutils literal notranslate"><span class="pre">mu_torsional</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/_generated/newton.Model.html#newton.Model.shape_material_mu_torsional" title="newton.Model.shape_material_mu_torsional"><code class="xref py py-attr docutils literal notranslate"><span class="pre">shape_material_mu_torsional</span></code></a></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rolling_friction</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mu_rolling</span></code></p></td>
 <td><p>Resistance to rolling motion</p></td>
 <td><p>XPBD, MuJoCo</p></td>
-<td><p><a class="reference internal" href="../api/_generated/newton.ModelBuilder.html#newton.ModelBuilder.ShapeConfig.rolling_friction" title="newton.ModelBuilder.ShapeConfig.rolling_friction"><code class="xref py py-attr docutils literal notranslate"><span class="pre">rolling_friction</span></code></a></p></td>
-<td><p><a class="reference internal" href="../api/_generated/newton.Model.html#newton.Model.shape_material_rolling_friction" title="newton.Model.shape_material_rolling_friction"><code class="xref py py-attr docutils literal notranslate"><span class="pre">shape_material_rolling_friction</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/_generated/newton.ModelBuilder.html#newton.ModelBuilder.ShapeConfig.mu_rolling" title="newton.ModelBuilder.ShapeConfig.mu_rolling"><code class="xref py py-attr docutils literal notranslate"><span class="pre">mu_rolling</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/_generated/newton.Model.html#newton.Model.shape_material_mu_rolling" title="newton.Model.shape_material_mu_rolling"><code class="xref py py-attr docutils literal notranslate"><span class="pre">shape_material_mu_rolling</span></code></a></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">k_hydro</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">kh</span></code></p></td>
 <td><p>Hydroelastic stiffness</p></td>
 <td><p>SemiImplicit, Featherstone, MuJoCo</p></td>
-<td><p><a class="reference internal" href="../api/_generated/newton.ModelBuilder.html#newton.ModelBuilder.ShapeConfig.k_hydro" title="newton.ModelBuilder.ShapeConfig.k_hydro"><code class="xref py py-attr docutils literal notranslate"><span class="pre">k_hydro</span></code></a></p></td>
-<td><p><a class="reference internal" href="../api/_generated/newton.Model.html#newton.Model.shape_material_k_hydro" title="newton.Model.shape_material_k_hydro"><code class="xref py py-attr docutils literal notranslate"><span class="pre">shape_material_k_hydro</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/_generated/newton.ModelBuilder.html#newton.ModelBuilder.ShapeConfig.kh" title="newton.ModelBuilder.ShapeConfig.kh"><code class="xref py py-attr docutils literal notranslate"><span class="pre">kh</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/_generated/newton.Model.html#newton.Model.shape_material_kh" title="newton.Model.shape_material_kh"><code class="xref py py-attr docutils literal notranslate"><span class="pre">shape_material_kh</span></code></a></p></td>
 </tr>
 </tbody>
 </table>
@@ -1820,7 +1835,7 @@ contact information. See <code class="xref py py-class docutils literal notransl
 <li><p>Use positive collision groups to reduce candidate pairs</p></li>
 <li><p>Use world indices for parallel simulations (essential for RL with many environments)</p></li>
 <li><p>Contact reduction is enabled by default for mesh-heavy scenes</p></li>
-<li><p>Pass <code class="docutils literal notranslate"><span class="pre">rigid_contact_max</span></code> to <code class="xref py py-meth docutils literal notranslate"><span class="pre">CollisionPipeline.from_model()</span></code> to limit memory in complex scenes</p></li>
+<li><p>Pass <code class="docutils literal notranslate"><span class="pre">rigid_contact_max</span></code> to <a class="reference internal" href="../api/_generated/newton.CollisionPipeline.html#newton.CollisionPipeline" title="newton.CollisionPipeline"><code class="xref py py-class docutils literal notranslate"><span class="pre">CollisionPipeline</span></code></a> to limit memory in complex scenes</p></li>
 </ul>
 </section>
 <section id="see-also">
@@ -1829,22 +1844,23 @@ contact information. See <code class="xref py py-class docutils literal notransl
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">newton</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">newton</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">CollisionPipeline</span><span class="p">,</span>
-    <span class="n">BroadPhaseMode</span><span class="p">,</span>
     <span class="n">Contacts</span><span class="p">,</span>
     <span class="n">GeoType</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">newton.geometry</span><span class="w"> </span><span class="kn">import</span> <span class="n">SDFHydroelasticConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">newton.geometry</span><span class="w"> </span><span class="kn">import</span> <span class="n">HydroelasticSDF</span>
 </pre></div>
 </div>
 <p><strong>API Reference:</strong></p>
 <ul class="simple">
+<li><p><a class="reference internal" href="../api/_generated/newton.Model.html#newton.Model.contacts" title="newton.Model.contacts"><code class="xref py py-meth docutils literal notranslate"><span class="pre">contacts()</span></code></a> - Create a contacts buffer (default pipeline)</p></li>
+<li><p><a class="reference internal" href="../api/_generated/newton.Model.html#newton.Model.collide" title="newton.Model.collide"><code class="xref py py-meth docutils literal notranslate"><span class="pre">collide()</span></code></a> - Run collision detection (default pipeline)</p></li>
 <li><p><a class="reference internal" href="../api/_generated/newton.CollisionPipeline.html#newton.CollisionPipeline" title="newton.CollisionPipeline"><code class="xref py py-class docutils literal notranslate"><span class="pre">CollisionPipeline</span></code></a> - Collision pipeline with configurable broad phase</p></li>
-<li><p><a class="reference internal" href="../api/_generated/newton.BroadPhaseMode.html#newton.BroadPhaseMode" title="newton.BroadPhaseMode"><code class="xref py py-class docutils literal notranslate"><span class="pre">BroadPhaseMode</span></code></a> - Broad phase algorithm selection</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">broad_phase</span></code> - Broad phase algorithm: <code class="docutils literal notranslate"><span class="pre">&quot;nxn&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;sap&quot;</span></code>, or <code class="docutils literal notranslate"><span class="pre">&quot;explicit&quot;</span></code></p></li>
 <li><p><a class="reference internal" href="../api/_generated/newton.Contacts.html#newton.Contacts" title="newton.Contacts"><code class="xref py py-class docutils literal notranslate"><span class="pre">Contacts</span></code></a> - Contact data container</p></li>
 <li><p><a class="reference internal" href="../api/_generated/newton.GeoType.html#newton.GeoType" title="newton.GeoType"><code class="xref py py-class docutils literal notranslate"><span class="pre">GeoType</span></code></a> - Shape geometry types</p></li>
 <li><p><a class="reference internal" href="../api/_generated/newton.ModelBuilder.html#newton.ModelBuilder.ShapeConfig" title="newton.ModelBuilder.ShapeConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShapeConfig</span></code></a> - Shape configuration options</p></li>
-<li><p><a class="reference internal" href="../api/_generated/newton.Model.html#newton.Model.collide" title="newton.Model.collide"><code class="xref py py-meth docutils literal notranslate"><span class="pre">collide()</span></code></a> - Collision detection method</p></li>
-<li><p><a class="reference internal" href="../api/_generated/newton.geometry.SDFHydroelasticConfig.html#newton.geometry.SDFHydroelasticConfig" title="newton.geometry.SDFHydroelasticConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">SDFHydroelasticConfig</span></code></a> - Hydroelastic contact configuration</p></li>
+<li><p><a class="reference internal" href="../api/_generated/newton.geometry.HydroelasticSDF.html#newton.geometry.HydroelasticSDF.Config" title="newton.geometry.HydroelasticSDF.Config"><code class="xref py py-class docutils literal notranslate"><span class="pre">Config</span></code></a> - Hydroelastic contact configuration</p></li>
+<li><p><a class="reference internal" href="../api/_generated/newton.CollisionPipeline.html#newton.CollisionPipeline.contacts" title="newton.CollisionPipeline.contacts"><code class="xref py py-meth docutils literal notranslate"><span class="pre">contacts()</span></code></a> - Allocate a contacts buffer for a custom pipeline</p></li>
 </ul>
 <p><strong>Model attributes:</strong></p>
 <ul class="simple">
@@ -1907,7 +1923,7 @@ contact information. See <code class="xref py py-class docutils literal notransl
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#shape-configuration">Shape Configuration</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#common-patterns">Common Patterns</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#contact-data">Contact Data</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#model-collide-parameters">Model.collide() Parameters</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#creating-and-populating-contacts">Creating and Populating Contacts</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#hydroelastic-contacts">Hydroelastic Contacts</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#contact-materials">Contact Materials</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#usd-integration">USD Integration</a></li>

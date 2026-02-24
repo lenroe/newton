@@ -826,53 +826,47 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="_generated/newton.utils.color_graph.html#newton.utils.color_graph" title="newton.utils.color_graph"><code class="xref py py-obj docutils literal notranslate"><span class="pre">color_graph</span></code></a>(num_nodes, graph_edge_indices[, ...])</p></td>
 <td><p>A function that generates coloring for a graph, which is represented by the number of nodes and an array of edges.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="_generated/newton.utils.compute_world_offsets.html#newton.utils.compute_world_offsets" title="newton.utils.compute_world_offsets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_world_offsets</span></code></a>(num_worlds, spacing[, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="_generated/newton.utils.compute_world_offsets.html#newton.utils.compute_world_offsets" title="newton.utils.compute_world_offsets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_world_offsets</span></code></a>(world_count, spacing)</p></td>
 <td><p>Compute positional offsets for multiple worlds arranged in a grid.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="_generated/newton.utils.create_box_mesh.html#newton.utils.create_box_mesh" title="newton.utils.create_box_mesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_box_mesh</span></code></a>(extents)</p></td>
-<td><p>Create a rectangular box (cuboid) mesh.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="_generated/newton.utils.create_cable_stiffness_from_elastic_moduli.html#newton.utils.create_cable_stiffness_from_elastic_moduli" title="newton.utils.create_cable_stiffness_from_elastic_moduli"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_cable_stiffness_from_elastic_moduli</span></code></a>(...)</p></td>
+<td><p>Create rod/cable stiffness parameters from elastic moduli (circular cross-section).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="_generated/newton.utils.create_capsule_mesh.html#newton.utils.create_capsule_mesh" title="newton.utils.create_capsule_mesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_capsule_mesh</span></code></a>(radius, half_height[, ...])</p></td>
-<td><p>Create a capsule (pill-shaped) mesh with hemispherical ends.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="_generated/newton.utils.create_parallel_transport_cable_quaternions.html#newton.utils.create_parallel_transport_cable_quaternions" title="newton.utils.create_parallel_transport_cable_quaternions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_parallel_transport_cable_quaternions</span></code></a>(...)</p></td>
+<td><p>Generate per-segment quaternions using a parallel-transport style construction.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="_generated/newton.utils.create_cone_mesh.html#newton.utils.create_cone_mesh" title="newton.utils.create_cone_mesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_cone_mesh</span></code></a>(radius, half_height[, ...])</p></td>
-<td><p>Create a cone mesh with circular base and pointed top.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="_generated/newton.utils.create_straight_cable_points.html#newton.utils.create_straight_cable_points" title="newton.utils.create_straight_cable_points"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_straight_cable_points</span></code></a>(start, ...)</p></td>
+<td><p>Create straight cable polyline points.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="_generated/newton.utils.create_cylinder_mesh.html#newton.utils.create_cylinder_mesh" title="newton.utils.create_cylinder_mesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_cylinder_mesh</span></code></a>(radius, half_height[, ...])</p></td>
-<td><p>Create a cylinder or truncated cone mesh.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="_generated/newton.utils.create_straight_cable_points_and_quaternions.html#newton.utils.create_straight_cable_points_and_quaternions" title="newton.utils.create_straight_cable_points_and_quaternions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_straight_cable_points_and_quaternions</span></code></a>(...)</p></td>
+<td><p>Generate straight cable points and matching per-segment quaternions.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="_generated/newton.utils.create_ellipsoid_mesh.html#newton.utils.create_ellipsoid_mesh" title="newton.utils.create_ellipsoid_mesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_ellipsoid_mesh</span></code></a>([rx, ry, rz, ...])</p></td>
-<td><p>Create an ellipsoid mesh with specified semi-axes.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="_generated/newton.utils.create_plane_mesh.html#newton.utils.create_plane_mesh" title="newton.utils.create_plane_mesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_plane_mesh</span></code></a>(width, length)</p></td>
-<td><p>Create a rectangular plane mesh in the XY plane.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="_generated/newton.utils.create_sphere_mesh.html#newton.utils.create_sphere_mesh" title="newton.utils.create_sphere_mesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_sphere_mesh</span></code></a>([radius, num_latitudes, ...])</p></td>
-<td><p>Create a sphere mesh with specified parameters.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="_generated/newton.utils.download_asset.html#newton.utils.download_asset" title="newton.utils.download_asset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download_asset</span></code></a>(asset_folder[, cache_dir, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="_generated/newton.utils.download_asset.html#newton.utils.download_asset" title="newton.utils.download_asset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download_asset</span></code></a>(asset_folder[, cache_dir, ...])</p></td>
 <td><p>Downloads a specific folder from the newton-assets GitHub repository into a local cache.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="_generated/newton.utils.event_scope.html#newton.utils.event_scope" title="newton.utils.event_scope"><code class="xref py py-obj docutils literal notranslate"><span class="pre">event_scope</span></code></a>(fn[, name])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="_generated/newton.utils.event_scope.html#newton.utils.event_scope" title="newton.utils.event_scope"><code class="xref py py-obj docutils literal notranslate"><span class="pre">event_scope</span></code></a>(fn[, name])</p></td>
 <td><p>Wraps a function and records an event before and after the function invocation.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="_generated/newton.utils.leaky_max.html#newton.utils.leaky_max" title="newton.utils.leaky_max"><code class="xref py py-obj docutils literal notranslate"><span class="pre">leaky_max</span></code></a>(a, b)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="_generated/newton.utils.leaky_max.html#newton.utils.leaky_max" title="newton.utils.leaky_max"><code class="xref py py-obj docutils literal notranslate"><span class="pre">leaky_max</span></code></a>(a, b)</p></td>
 <td><p>Compute a numerically stable, differentiable approximation of <cite>max(a, b)</cite>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="_generated/newton.utils.leaky_min.html#newton.utils.leaky_min" title="newton.utils.leaky_min"><code class="xref py py-obj docutils literal notranslate"><span class="pre">leaky_min</span></code></a>(a, b)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="_generated/newton.utils.leaky_min.html#newton.utils.leaky_min" title="newton.utils.leaky_min"><code class="xref py py-obj docutils literal notranslate"><span class="pre">leaky_min</span></code></a>(a, b)</p></td>
 <td><p>Compute a numerically stable, differentiable approximation of <cite>min(a, b)</cite>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="_generated/newton.utils.load_texture.html#newton.utils.load_texture" title="newton.utils.load_texture"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_texture</span></code></a>(texture)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="_generated/newton.utils.load_texture.html#newton.utils.load_texture" title="newton.utils.load_texture"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_texture</span></code></a>(texture)</p></td>
 <td><p>Normalize a texture input into a contiguous image array.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="_generated/newton.utils.normalize_texture.html#newton.utils.normalize_texture" title="newton.utils.normalize_texture"><code class="xref py py-obj docutils literal notranslate"><span class="pre">normalize_texture</span></code></a>(texture_image, *[, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="_generated/newton.utils.normalize_texture.html#newton.utils.normalize_texture" title="newton.utils.normalize_texture"><code class="xref py py-obj docutils literal notranslate"><span class="pre">normalize_texture</span></code></a>(texture_image, *[, ...])</p></td>
 <td><p>Normalize a texture array for rendering.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="_generated/newton.utils.plot_graph.html#newton.utils.plot_graph" title="newton.utils.plot_graph"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_graph</span></code></a>(vertices, edges[, edge_labels, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="_generated/newton.utils.plot_graph.html#newton.utils.plot_graph" title="newton.utils.plot_graph"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_graph</span></code></a>(vertices, edges[, edge_labels, ...])</p></td>
 <td><p>Plots a graph using matplotlib and networkx.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="_generated/newton.utils.quat_between_axes.html#newton.utils.quat_between_axes" title="newton.utils.quat_between_axes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">quat_between_axes</span></code></a>(*axes)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="_generated/newton.utils.quat_between_axes.html#newton.utils.quat_between_axes" title="newton.utils.quat_between_axes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">quat_between_axes</span></code></a>(*axes)</p></td>
 <td><p>Compute the rotation between a sequence of axes.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="_generated/newton.utils.quat_between_vectors_robust.html#newton.utils.quat_between_vectors_robust" title="newton.utils.quat_between_vectors_robust"><code class="xref py py-obj docutils literal notranslate"><span class="pre">quat_between_vectors_robust</span></code></a>(from_vec, to_vec)</p></td>
+<td><p>Robustly compute the quaternion that rotates <code class="docutils literal notranslate"><span class="pre">from_vec</span></code> to <code class="docutils literal notranslate"><span class="pre">to_vec</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="_generated/newton.utils.quat_decompose.html#newton.utils.quat_decompose" title="newton.utils.quat_decompose"><code class="xref py py-obj docutils literal notranslate"><span class="pre">quat_decompose</span></code></a>(q)</p></td>
 <td><p>Decompose a quaternion into extrinsic Euler angles.</p></td>

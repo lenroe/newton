@@ -850,11 +850,11 @@ for joints and contacts. Hard constraints are not currently enforced.</p>
 <span class="n">state_in</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">state</span><span class="p">()</span>
 <span class="n">state_out</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">state</span><span class="p">()</span>
 <span class="n">control</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">control</span><span class="p">()</span>
-<span class="n">contacts</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">collide</span><span class="p">(</span><span class="n">state_in</span><span class="p">)</span>
+<span class="n">contacts</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">contacts</span><span class="p">()</span>
 
 <span class="c1"># Simulation loop</span>
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span>
-    <span class="n">contacts</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">collide</span><span class="p">(</span><span class="n">state_in</span><span class="p">)</span>  <span class="c1"># Update contacts</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">collide</span><span class="p">(</span><span class="n">state_in</span><span class="p">,</span> <span class="n">contacts</span><span class="p">)</span>  <span class="c1"># Update contacts</span>
     <span class="n">solver</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">state_in</span><span class="p">,</span> <span class="n">state_out</span><span class="p">,</span> <span class="n">control</span><span class="p">,</span> <span class="n">contacts</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
     <span class="n">state_in</span><span class="p">,</span> <span class="n">state_out</span> <span class="o">=</span> <span class="n">state_out</span><span class="p">,</span> <span class="n">state_in</span>
 </pre></div>
@@ -956,24 +956,6 @@ contacts).
 Setting them excessively large may increase memory usage and degrade performance.</p></li>
 </ul>
 </div>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="newton.solvers.SolverVBD.compute_rigid_force_element_adjacency">
-<span class="sig-name descname"><span class="pre">compute_rigid_force_element_adjacency</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#newton.solvers.SolverVBD.compute_rigid_force_element_adjacency" title="Link to this definition">#</a></dt>
-<dd><p>Build CSR adjacency between rigid bodies and joints.</p>
-<dl class="simple">
-<dt>Returns an instance of RigidForceElementAdjacencyInfo with:</dt><dd><ul class="simple">
-<li><p>body_adj_joints: flattened joint ids</p></li>
-<li><p>body_adj_joints_offsets: CSR offsets of size body_count + 1</p></li>
-</ul>
-</dd>
-</dl>
-<p class="rubric">Notes</p>
-<ul class="simple">
-<li><p>Runs on CPU to avoid GPU atomics; kernels iterate serially over joints (dim=1).</p></li>
-<li><p>When there are no joints, offsets are an all-zero array of length body_count + 1.</p></li>
-</ul>
 </dd></dl>
 
 <dl class="py method">
@@ -1119,7 +1101,6 @@ depend on this argument.</p></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#newton.solvers.SolverVBD"><code class="docutils literal notranslate"><span class="pre">SolverVBD</span></code></a><ul class="visible nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#newton.solvers.SolverVBD.register_custom_attributes"><code class="docutils literal notranslate"><span class="pre">SolverVBD.register_custom_attributes()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#newton.solvers.SolverVBD.__init__"><code class="docutils literal notranslate"><span class="pre">SolverVBD.__init__()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#newton.solvers.SolverVBD.compute_rigid_force_element_adjacency"><code class="docutils literal notranslate"><span class="pre">SolverVBD.compute_rigid_force_element_adjacency()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#newton.solvers.SolverVBD.finalize_particles"><code class="docutils literal notranslate"><span class="pre">SolverVBD.finalize_particles()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#newton.solvers.SolverVBD.finalize_rigid_bodies"><code class="docutils literal notranslate"><span class="pre">SolverVBD.finalize_rigid_bodies()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#newton.solvers.SolverVBD.initialize_particles"><code class="docutils literal notranslate"><span class="pre">SolverVBD.initialize_particles()</span></code></a></li>
