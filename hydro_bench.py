@@ -249,7 +249,8 @@ def build_bunny_pyramid_world() -> newton.ModelBuilder:
     scale = BUNNY_SCALE_TARGET / float(max(extent))
     center = (verts.max(axis=0) + verts.min(axis=0)) / 2.0
 
-    # Build SDF once at the target scale
+    # Build SDF once at the target scale (clear first for repeated runs with cached mesh)
+    mesh.clear_sdf()
     mesh.build_sdf(
         max_resolution=BUNNY_SDF_MAX_RESOLUTION,
         narrow_band_range=(-BUNNY_SDF_NARROW_BAND, BUNNY_SDF_NARROW_BAND),
