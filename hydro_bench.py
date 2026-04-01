@@ -363,7 +363,7 @@ class BenchmarkScene:
         if config.scene == "nut_bolt":
             max_con_per_world = 450 if config.reduce_contacts else 300000
         elif config.scene == "bunny_pyramid":
-            max_con_per_world = 14000 if config.reduce_contacts else 1_800_000
+            max_con_per_world = 17000 if config.reduce_contacts else 1_800_000
             iso_mult = 2
         else:
             raise ValueError(f"Unknown scene: {config.scene}")
@@ -536,6 +536,11 @@ def run_benchmark(config: BenchmarkConfig) -> BenchmarkResult:
     print(f"  Median contacts: {median_contacts}")
     print(f"  VRAM: {vram_mb:.1f} MB" if vram_mb >= 0 else "  VRAM: unknown")
 
+    # Release CUDA graph first (it pins all captured GPU memory), then the scene
+    if hasattr(scene, 'graph'):
+        scene.graph = None
+    del scene
+
     return result
 
 
@@ -622,7 +627,7 @@ def main():
 
         scenes = ["nut_bolt", "bunny_pyramid", "panda_hydro"]
         solvers = ["mujoco", "xpbd"]
-        num_worlds = [1, 16, 64, 128, 512, 1024]
+        num_worlds = [1, 16, 64, 128, 512] # 1024
         reduce_options = [True, False]
 
         for scene, solver, n_worlds, reduce in itertools.product(scenes, solvers, num_worlds, reduce_options):
@@ -655,6 +660,9 @@ def main():
             # Clear VRAM between runs to avoid OOM with large configs
             gc.collect()
             wp.synchronize()
+            for device_name in wp.get_cuda_devices():
+                if wp.is_mempool_enabled(device_name):
+                    wp.set_mempool_release_threshold(device_name, 0)
     else:
         # Run single configuration
         config = BenchmarkConfig(
